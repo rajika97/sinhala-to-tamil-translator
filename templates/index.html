@@ -1,0 +1,194 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sinhala-Tamil Translator</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        line-height: 1.6;
+      }
+      h1 {
+        text-align: center;
+        color: #4a4a4a;
+      }
+      .container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      .translation-box {
+        display: flex;
+        gap: 20px;
+      }
+      .text-area-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+      textarea {
+        width: 100%;
+        height: 150px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        resize: vertical;
+        font-size: 16px;
+      }
+      label {
+        font-weight: bold;
+        margin-bottom: 5px;
+      }
+      .language-label {
+        background-color: #f0f0f0;
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: 14px;
+        margin-bottom: 5px;
+        display: inline-block;
+      }
+      button {
+        padding: 10px 15px;
+        background-color: #4285f4;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s;
+      }
+      button:hover {
+        background-color: #3367d6;
+      }
+      .divider {
+        text-align: center;
+        font-weight: bold;
+        color: #666;
+      }
+      .status {
+        text-align: center;
+        font-style: italic;
+        color: #666;
+      }
+      .pivot-container {
+        margin-top: 20px;
+        border-top: 1px solid #eee;
+        padding-top: 10px;
+      }
+      .pivot-title {
+        font-weight: bold;
+        color: #666;
+        margin-bottom: 5px;
+      }
+      .pivot-text {
+        padding: 10px;
+        background-color: #f9f9f9;
+        border-radius: 5px;
+        font-style: italic;
+      }
+      .loading {
+        text-align: center;
+        color: #4285f4;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Sinhala-Tamil Translation</h1>
+    <div class="container">
+      <div class="translation-box">
+        <div class="text-area-container">
+          <div class="language-label">Sinhala</div>
+          <textarea
+            id="source-text"
+            placeholder="Enter Sinhala text here..."
+          ></textarea>
+        </div>
+        <div class="divider">→</div>
+        <div class="text-area-container">
+          <div class="language-label">Tamil</div>
+          <textarea
+            id="target-text"
+            placeholder="Translation will appear here..."
+            readonly
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="loading" id="loading-indicator">
+        Translating... This may take a few moments.
+      </div>
+
+      <div style="text-align: center">
+        <button id="translate-btn">Translate</button>
+      </div>
+
+      <div class="pivot-container" id="pivot-container" style="display: none">
+        <div class="pivot-title">English Pivot:</div>
+        <div class="pivot-text" id="pivot-text"></div>
+      </div>
+
+      <div class="status" id="status"></div>
+    </div>
+
+    <script>
+      document
+        .getElementById("translate-btn")
+        .addEventListener("click", async function () {
+          const sourceText = document
+            .getElementById("source-text")
+            .value.trim();
+          const targetTextArea = document.getElementById("target-text");
+          const pivotContainer = document.getElementById("pivot-container");
+          const pivotText = document.getElementById("pivot-text");
+          const status = document.getElementById("status");
+          const loadingIndicator = document.getElementById("loading-indicator");
+
+          if (!sourceText) {
+            status.textContent = "Please enter some text to translate";
+            return;
+          }
+
+          // Clear previous translation and show loading
+          targetTextArea.value = "";
+          pivotContainer.style.display = "none";
+          status.textContent = "";
+          loadingIndicator.style.display = "block";
+
+          try {
+            const response = await fetch("/translate", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ text: sourceText }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+              targetTextArea.value = data.tamil;
+
+              // Show the English pivot text
+              pivotText.textContent = data.english_pivot;
+              pivotContainer.style.display = "block";
+
+              status.textContent = "Translation completed!";
+            } else {
+              status.textContent = "Error: " + (data.error || "Unknown error");
+            }
+          } catch (error) {
+            status.textContent = "Error: Could not connect to the server";
+            console.error("Error:", error);
+          } finally {
+            loadingIndicator.style.display = "none";
+          }
+        });
+    </script>
+  </body>
+</html>
