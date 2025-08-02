@@ -107,8 +107,14 @@
           <textarea
             id="source-text"
             placeholder="Enter Sinhala text here..."
+            maxlength="512"
+            oninput="updateCharacterCount()"
           ></textarea>
+          <div class="char-counter">
+            <span id="char-count">0</span>/512 characters
+          </div>
         </div>
+
         <div class="divider">→</div>
         <div class="text-area-container">
           <div class="language-label">Tamil</div>
@@ -188,6 +194,27 @@
           } finally {
             loadingIndicator.style.display = "none";
           }
+        });
+    </script>
+    <script>
+      function updateCharacterCount() {
+        const textArea = document.getElementById("source-text");
+        const charCount = document.getElementById("char-count");
+        charCount.textContent = textArea.value.length;
+      }
+
+      document
+        .getElementById("translate-btn")
+        .addEventListener("click", function () {
+          const textArea = document.getElementById("source-text");
+          const status = document.getElementById("status");
+
+          if (textArea.value.length > 512) {
+            status.textContent = "Error: Text exceeds 512 character limit!";
+            return;
+          }
+
+          status.textContent = ""; // Clear error if within limit
         });
     </script>
   </body>
